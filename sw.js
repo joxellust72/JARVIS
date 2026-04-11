@@ -2,7 +2,7 @@
 // VISION SOLDIER — Service Worker (PWA Offline)
 // ============================================================
 
-const CACHE_NAME = "vision-soldier-v2";
+const CACHE_NAME = "vision-soldier-v3";
 
 const STATIC_ASSETS = [
   "/",

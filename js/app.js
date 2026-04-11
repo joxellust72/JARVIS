@@ -31,7 +31,7 @@ class VisionApp {
     // Cargar perfil guardado
     await this.loadSavedProfile();
 
-    // Renderizar tareas diarias
+    // Renderizar tareas iniciales
     await this.renderTasks();
   }
 
@@ -169,41 +169,6 @@ class VisionApp {
     document.getElementById("thinking-indicator")?.remove();
   }
 
-  // ── Tareas Diarias (Widget) ───────────────────────────────────
-
-  async renderTasks() {
-    const list = document.getElementById("tasks-list");
-    if (!list) return;
-    const tasks = await DB.getTasks();
-    if (!tasks || tasks.length === 0) {
-      list.innerHTML = `<div style="text-align:center;color:var(--color-text-dim);font-size:10px;padding:4px 0;">No hay tareas activas</div>`;
-      return;
-    }
-    list.innerHTML = tasks.map(t => `
-      <div class="task-item ${t.completed ? 'completed' : ''}">
-        <input type="checkbox" class="task-checkbox" ${t.completed ? 'checked' : ''} onchange="APP.toggleTask(${t.id}, ${t.completed})">
-        <span style="flex:1">${t.text}</span>
-        <button class="task-delete" onclick="APP.deleteTask(${t.id})">❌</button>
-      </div>
-    `).join("");
-  }
-
-  async addTask(text) {
-    if (!text) return;
-    await DB.addTask(text);
-    await this.renderTasks();
-  }
-
-  async toggleTask(id, currentStatus) {
-    await DB.toggleTask(id, currentStatus);
-    await this.renderTasks();
-  }
-
-  async deleteTask(id) {
-    await DB.deleteTask(id);
-    await this.renderTasks();
-  }
-
   // ── Drawer (Historial) ────────────────────────────────────────
 
   openDrawer() {
@@ -228,21 +193,13 @@ class VisionApp {
 
   async openOverlay(viewId) {
     if (viewId === "diary") {
-      const pwd = await DB.getProfile("diarypwd");
-      if (pwd && pwd.trim().length > 0) {
-        // Require password
-        document.getElementById("password-modal")?.classList.add("open");
-        document.getElementById("diary-password-input").value = "";
-        document.getElementById("diary-password-input").focus();
-        this.pendingDiaryUnlock = pwd;
-        return;
+      const pwd = await DB.getProfile("diaryPassword");
+      if (pwd && pwd.trim().length > 0 && !this.diaryUnlocked) {
+        this.openPasswordModal();
+        return; // Detiene la apertura del diario
       }
     }
 
-    this._showOverlay(viewId);
-  }
-
-  _showOverlay(viewId) {
     const el = document.getElementById(`view-${viewId}`);
     if (!el) return;
     el.style.display = "flex";
@@ -262,6 +219,111 @@ class VisionApp {
     setTimeout(() => { el.style.display = "none"; }, 350);
     this.currentView = "main";
     document.querySelectorAll(".nav-btn").forEach(b => b.classList.toggle("active", b.dataset.view === "main"));
+    
+    if (viewId === "diary") {
+      this.diaryUnlocked = false; // Relock upon closing
+    }
+  }
+
+  // ── Contraseña del Diario ──────────────────────────────────────
+
+  openPasswordModal() {
+    const modal = document.getElementById("password-modal");
+    if (modal) modal.style.display = "flex";
+    const inp = document.getElementById("diary-password-input");
+    if (inp) inp.value = "";
+    document.getElementById("pwd-mic-btn")?.classList.remove("listening");
+  }
+
+  closePasswordModal() {
+    const modal = document.getElementById("password-modal");
+    if (modal) modal.style.display = "none";
+    document.getElementById("pwd-mic-btn")?.classList.remove("listening");
+    if (this._pwdVoiceHandler) {
+      document.removeEventListener("voice:interim", this._pwdVoiceHandler);
+      this._pwdVoiceHandler = null;
+    }
+  }
+
+  async verifyPassword() {
+    const inputPwd = document.getElementById("diary-password-input")?.value?.trim().toLowerCase();
+    const storedPwd = await DB.getProfile("diaryPassword");
+    if (storedPwd && inputPwd === storedPwd.toLowerCase()) {
+      this.diaryUnlocked = true;
+      this.closePasswordModal();
+      this.openOverlay("diary");
+      this.showToast("Archivo desbloqueado, señor.");
+      if (CONFIG.VOICE_ENABLED) VOICE.speak("Archivo principal desbloqueado. Acceso concedido.");
+    } else {
+      this.showToast("Contraseña incorrecta. Acceso denegado.");
+    }
+  }
+
+  listenForPassword() {
+    const btn = document.getElementById("pwd-mic-btn");
+    if (btn) btn.classList.add("listening");
+    
+    this._pwdVoiceHandler = async (e) => {
+      const text = (e.detail || "").toLowerCase();
+      const inp = document.getElementById("diary-password-input");
+      if (inp) inp.value = text;
+      
+      const storedPwd = await DB.getProfile("diaryPassword");
+      if (storedPwd && text.includes(storedPwd.toLowerCase())) {
+        if (inp) inp.value = storedPwd;
+        if (this._pwdVoiceHandler) {
+          document.removeEventListener("voice:interim", this._pwdVoiceHandler);
+          this._pwdVoiceHandler = null;
+        }
+        setTimeout(() => this.verifyPassword(), 500); // Verify after brief delay to show matched text
+      }
+    };
+    document.addEventListener("voice:interim", this._pwdVoiceHandler);
+    this.showToast("Te escucho... di la contraseña.");
+  }
+
+  // ── Tareas Diarias ──────────────────────────────────────────────
+
+  async renderTasks() {
+    const tasksBar = document.getElementById("top-tasks-bar");
+    const container = document.getElementById("active-tasks-list");
+    if (!tasksBar || !container) return;
+
+    const tasks = await DB.getAllTasks();
+    const activeTasks = tasks.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    if (activeTasks.length === 0) {
+      tasksBar.style.display = "none";
+      return;
+    }
+
+    tasksBar.style.display = "block";
+    container.innerHTML = activeTasks.map(t => \`
+      <div class="task-item \${t.completed ? 'completed' : ''}">
+        <input type="checkbox" class="task-checkbox" \${t.completed ? 'checked' : ''} onchange="APP.toggleTask(\${t.id}, this.checked)">
+        <span style="flex:1;">\${t.text}</span>
+        <button onclick="APP.deleteTask(\${t.id})" style="background:transparent;border:none;color:var(--color-danger);cursor:pointer;font-size:16px;" aria-label="Eliminar tarea">×</button>
+      </div>
+    \`).join("");
+  }
+
+  async toggleTask(id, completed) {
+    await DB.toggleTask(id, completed);
+    await this.renderTasks();
+  }
+
+  async deleteTask(id) {
+    await DB.deleteTask(id);
+    await this.renderTasks();
+  }
+
+  async addManualTask() {
+    const text = prompt("Nueva tarea o recordatorio:");
+    if (text && text.trim()) {
+      await DB.addTask(text.trim());
+      await this.renderTasks();
+      this.showToast("Tarea añadida a la lista.");
+    }
   }
 
   // ── Diario ────────────────────────────────────────────────────
@@ -329,7 +391,10 @@ class VisionApp {
     if (profile.traits)    PERSONALITY.userProfile.traits    = profile.traits.split(",").map(s=>s.trim());
     if (profile.profession)PERSONALITY.userProfile.profession= profile.profession;
     if (profile.name)      PERSONALITY.userProfile.name      = profile.name;
-    // diarypwd handled natively in openOverlay
+    if (profile.diaryPassword) {
+      const el = document.getElementById("profile-diary-password");
+      if(el) el.value = profile.diaryPassword;
+    }
   }
 
   async renderProfile() {
@@ -339,13 +404,12 @@ class VisionApp {
     document.getElementById("profile-profession").value = profile.profession || PERSONALITY.userProfile.profession || "";
     document.getElementById("profile-interests").value  = profile.interests  || PERSONALITY.userProfile.interests.join(", ") || "";
     document.getElementById("profile-traits").value     = profile.traits     || PERSONALITY.userProfile.traits.join(", ") || "";
-    document.getElementById("profile-diarypwd").value   = profile.diarypwd   || "";
     const el = document.getElementById("profile-stats");
     if (el) el.innerHTML = `<span>📔 ${stats.diaryCount} entradas en el diario</span><span>💬 ${stats.messagesCount} mensajes intercambiados</span>`;
   }
 
   async saveProfile() {
-    const fields = ["name","profession","interests","traits","diarypwd"];
+    const fields = ["name","profession","interests","traits", "diaryPassword"];
     for (const f of fields) {
       const val = document.getElementById(`profile-${f}`)?.value?.trim();
       if (val != null) {
@@ -441,59 +505,13 @@ class VisionApp {
     document.getElementById("diary-modal-save")?.addEventListener("click", () => this.saveDiaryModal());
     document.getElementById("diary-modal-cancel")?.addEventListener("click", () => this.closeDiaryModal());
 
-    // Password Unlock Modal
-    document.getElementById("password-modal-cancel")?.addEventListener("click", () => {
-      document.getElementById("password-modal")?.classList.remove("open");
-      this.pendingDiaryUnlock = null;
-    });
+    // Modal Contraseña
+    document.getElementById("pwd-cancel-btn")?.addEventListener("click", () => this.closePasswordModal());
+    document.getElementById("pwd-unlock-btn")?.addEventListener("click", () => this.verifyPassword());
+    document.getElementById("pwd-mic-btn")?.addEventListener("click", () => this.listenForPassword());
 
-    const unlockFnc = () => {
-      const inputVal = document.getElementById("diary-password-input")?.value?.trim().toLowerCase();
-      if (inputVal === this.pendingDiaryUnlock?.toLowerCase()) {
-        document.getElementById("password-modal")?.classList.remove("open");
-        this.pendingDiaryUnlock = null;
-        this._showOverlay("diary");
-        this.showToast("Acceso autorizado.");
-      } else {
-        this.showToast("Contraseña incorrecta.");
-        if (document.getElementById("diary-password-input")) {
-           document.getElementById("diary-password-input").value = "";
-        }
-      }
-    };
-
-    document.getElementById("password-modal-submit")?.addEventListener("click", unlockFnc);
-    document.getElementById("diary-password-input")?.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") unlockFnc();
-    });
-
-    // Voice Unlock
-    document.getElementById("voice-pwd-btn")?.addEventListener("click", () => {
-      this.showToast("Diga la contraseña...");
-      VOICE.startContinuous(); // Ensure mic is alive
-    });
-
-    // Tareas Diarias
-    document.getElementById("task-add-btn")?.addEventListener("click", () => {
-      const row = document.getElementById("task-input-row");
-      if (row) {
-        row.style.display = row.style.display === "none" ? "flex" : "none";
-        if (row.style.display === "flex") document.getElementById("new-task-input")?.focus();
-      }
-    });
-
-    const submitTask = async () => {
-      const inp = document.getElementById("new-task-input");
-      if (inp && inp.value.trim()) {
-        await this.addTask(inp.value.trim());
-        inp.value = "";
-        document.getElementById("task-input-row").style.display = "none";
-      }
-    };
-    document.getElementById("save-task-btn")?.addEventListener("click", submitTask);
-    document.getElementById("new-task-input")?.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") submitTask();
-    });
+    // Tareas
+    document.getElementById("new-task-main-btn")?.addEventListener("click", () => this.addManualTask());
 
     // Diary update event
     document.addEventListener("diary:updated", () => {
@@ -542,20 +560,6 @@ class VisionApp {
     // Comando final capturado
     document.addEventListener("voice:command", (e) => {
       const command = e.detail;
-
-      // Handle voice password unlock if modal is open
-      const pwdModal = document.getElementById("password-modal");
-      if (pwdModal && pwdModal.classList.contains("open") && this.pendingDiaryUnlock) {
-        const inputEl = document.getElementById("diary-password-input");
-        if (inputEl) inputEl.value = command.replace(/[.,!?]$/g, '').trim(); 
-        document.getElementById("password-modal-submit")?.click();
-        this.setOrbTranscript("");
-        document.getElementById("mic-orb-btn")?.classList.remove("woken", "listening-command");
-        this.setOrbState("listening");
-        this.setWakeStatus("listening");
-        return;
-      }
-
       this.setOrbTranscript("");
       document.getElementById("mic-orb-btn")?.classList.remove("woken", "listening-command");
       this.processMessage(command);
