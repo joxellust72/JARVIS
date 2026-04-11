@@ -35,6 +35,13 @@ class VisionDB {
         if (!db.objectStoreNames.contains("profile")) {
           db.createObjectStore("profile", { keyPath: "key" });
         }
+
+        // Tabla: Tareas (Daily Tasks)
+        if (!db.objectStoreNames.contains("tasks")) {
+          const tasksStore = db.createObjectStore("tasks", { keyPath: "id", autoIncrement: true });
+          tasksStore.createIndex("date", "date", { unique: false });
+          tasksStore.createIndex("completed", "completed", { unique: false });
+        }
       };
 
       request.onsuccess = (event) => {
@@ -112,6 +119,59 @@ class VisionDB {
         putReq.onsuccess = () => resolve();
         putReq.onerror = () => reject(putReq.error);
       };
+    });
+  }
+
+  // ─── TAREAS DIARIAS ─────────────────────────────────────────
+
+  async addTask(text) {
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction("tasks", "readwrite");
+      const store = tx.objectStore("tasks");
+      const data = {
+        text,
+        completed: false,
+        date: new Date().toISOString()
+      };
+      const req = store.add(data);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async getTasks() {
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction("tasks", "readonly");
+      const store = tx.objectStore("tasks");
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async toggleTask(id, currentStatus) {
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction("tasks", "readwrite");
+      const store = tx.objectStore("tasks");
+      const getReq = store.get(id);
+      getReq.onsuccess = () => {
+        if (!getReq.result) return reject("Task not found");
+        const task = getReq.result;
+        task.completed = !currentStatus;
+        const putReq = store.put(task);
+        putReq.onsuccess = () => resolve();
+        putReq.onerror = () => reject(putReq.error);
+      };
+    });
+  }
+
+  async deleteTask(id) {
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction("tasks", "readwrite");
+      const store = tx.objectStore("tasks");
+      const req = store.delete(id);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
     });
   }
 

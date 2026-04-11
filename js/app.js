@@ -30,6 +30,9 @@ class VisionApp {
 
     // Cargar perfil guardado
     await this.loadSavedProfile();
+
+    // Renderizar tareas diarias
+    await this.renderTasks();
   }
 
   // ── Estados del Orbe ─────────────────────────────────────────
@@ -166,6 +169,41 @@ class VisionApp {
     document.getElementById("thinking-indicator")?.remove();
   }
 
+  // ── Tareas Diarias (Widget) ───────────────────────────────────
+
+  async renderTasks() {
+    const list = document.getElementById("tasks-list");
+    if (!list) return;
+    const tasks = await DB.getTasks();
+    if (!tasks || tasks.length === 0) {
+      list.innerHTML = `<div style="text-align:center;color:var(--color-text-dim);font-size:10px;padding:4px 0;">No hay tareas activas</div>`;
+      return;
+    }
+    list.innerHTML = tasks.map(t => `
+      <div class="task-item ${t.completed ? 'completed' : ''}">
+        <input type="checkbox" class="task-checkbox" ${t.completed ? 'checked' : ''} onchange="APP.toggleTask(${t.id}, ${t.completed})">
+        <span style="flex:1">${t.text}</span>
+        <button class="task-delete" onclick="APP.deleteTask(${t.id})">❌</button>
+      </div>
+    `).join("");
+  }
+
+  async addTask(text) {
+    if (!text) return;
+    await DB.addTask(text);
+    await this.renderTasks();
+  }
+
+  async toggleTask(id, currentStatus) {
+    await DB.toggleTask(id, currentStatus);
+    await this.renderTasks();
+  }
+
+  async deleteTask(id) {
+    await DB.deleteTask(id);
+    await this.renderTasks();
+  }
+
   // ── Drawer (Historial) ────────────────────────────────────────
 
   openDrawer() {
@@ -188,7 +226,23 @@ class VisionApp {
 
   // ── Navegación Overlays ────────────────────────────────────────
 
-  openOverlay(viewId) {
+  async openOverlay(viewId) {
+    if (viewId === "diary") {
+      const pwd = await DB.getProfile("diarypwd");
+      if (pwd && pwd.trim().length > 0) {
+        // Require password
+        document.getElementById("password-modal")?.classList.add("open");
+        document.getElementById("diary-password-input").value = "";
+        document.getElementById("diary-password-input").focus();
+        this.pendingDiaryUnlock = pwd;
+        return;
+      }
+    }
+
+    this._showOverlay(viewId);
+  }
+
+  _showOverlay(viewId) {
     const el = document.getElementById(`view-${viewId}`);
     if (!el) return;
     el.style.display = "flex";
@@ -275,6 +329,7 @@ class VisionApp {
     if (profile.traits)    PERSONALITY.userProfile.traits    = profile.traits.split(",").map(s=>s.trim());
     if (profile.profession)PERSONALITY.userProfile.profession= profile.profession;
     if (profile.name)      PERSONALITY.userProfile.name      = profile.name;
+    // diarypwd handled natively in openOverlay
   }
 
   async renderProfile() {
@@ -284,12 +339,13 @@ class VisionApp {
     document.getElementById("profile-profession").value = profile.profession || PERSONALITY.userProfile.profession || "";
     document.getElementById("profile-interests").value  = profile.interests  || PERSONALITY.userProfile.interests.join(", ") || "";
     document.getElementById("profile-traits").value     = profile.traits     || PERSONALITY.userProfile.traits.join(", ") || "";
+    document.getElementById("profile-diarypwd").value   = profile.diarypwd   || "";
     const el = document.getElementById("profile-stats");
     if (el) el.innerHTML = `<span>📔 ${stats.diaryCount} entradas en el diario</span><span>💬 ${stats.messagesCount} mensajes intercambiados</span>`;
   }
 
   async saveProfile() {
-    const fields = ["name","profession","interests","traits"];
+    const fields = ["name","profession","interests","traits","diarypwd"];
     for (const f of fields) {
       const val = document.getElementById(`profile-${f}`)?.value?.trim();
       if (val != null) {
@@ -385,6 +441,60 @@ class VisionApp {
     document.getElementById("diary-modal-save")?.addEventListener("click", () => this.saveDiaryModal());
     document.getElementById("diary-modal-cancel")?.addEventListener("click", () => this.closeDiaryModal());
 
+    // Password Unlock Modal
+    document.getElementById("password-modal-cancel")?.addEventListener("click", () => {
+      document.getElementById("password-modal")?.classList.remove("open");
+      this.pendingDiaryUnlock = null;
+    });
+
+    const unlockFnc = () => {
+      const inputVal = document.getElementById("diary-password-input")?.value?.trim().toLowerCase();
+      if (inputVal === this.pendingDiaryUnlock?.toLowerCase()) {
+        document.getElementById("password-modal")?.classList.remove("open");
+        this.pendingDiaryUnlock = null;
+        this._showOverlay("diary");
+        this.showToast("Acceso autorizado.");
+      } else {
+        this.showToast("Contraseña incorrecta.");
+        if (document.getElementById("diary-password-input")) {
+           document.getElementById("diary-password-input").value = "";
+        }
+      }
+    };
+
+    document.getElementById("password-modal-submit")?.addEventListener("click", unlockFnc);
+    document.getElementById("diary-password-input")?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") unlockFnc();
+    });
+
+    // Voice Unlock
+    document.getElementById("voice-pwd-btn")?.addEventListener("click", () => {
+      this.showToast("Diga la contraseña...");
+      VOICE.startContinuous(); // Ensure mic is alive
+    });
+
+    // Tareas Diarias
+    document.getElementById("task-add-btn")?.addEventListener("click", () => {
+      const row = document.getElementById("task-input-row");
+      if (row) {
+        row.style.display = row.style.display === "none" ? "flex" : "none";
+        if (row.style.display === "flex") document.getElementById("new-task-input")?.focus();
+      }
+    });
+
+    const submitTask = async () => {
+      const inp = document.getElementById("new-task-input");
+      if (inp && inp.value.trim()) {
+        await this.addTask(inp.value.trim());
+        inp.value = "";
+        document.getElementById("task-input-row").style.display = "none";
+      }
+    };
+    document.getElementById("save-task-btn")?.addEventListener("click", submitTask);
+    document.getElementById("new-task-input")?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") submitTask();
+    });
+
     // Diary update event
     document.addEventListener("diary:updated", () => {
       if (this.currentView === "diary") this.renderDiary();
@@ -432,6 +542,20 @@ class VisionApp {
     // Comando final capturado
     document.addEventListener("voice:command", (e) => {
       const command = e.detail;
+
+      // Handle voice password unlock if modal is open
+      const pwdModal = document.getElementById("password-modal");
+      if (pwdModal && pwdModal.classList.contains("open") && this.pendingDiaryUnlock) {
+        const inputEl = document.getElementById("diary-password-input");
+        if (inputEl) inputEl.value = command.replace(/[.,!?]$/g, '').trim(); 
+        document.getElementById("password-modal-submit")?.click();
+        this.setOrbTranscript("");
+        document.getElementById("mic-orb-btn")?.classList.remove("woken", "listening-command");
+        this.setOrbState("listening");
+        this.setWakeStatus("listening");
+        return;
+      }
+
       this.setOrbTranscript("");
       document.getElementById("mic-orb-btn")?.classList.remove("woken", "listening-command");
       this.processMessage(command);
