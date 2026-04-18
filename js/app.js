@@ -298,13 +298,13 @@ class VisionApp {
     }
 
     tasksBar.style.display = "block";
-    container.innerHTML = activeTasks.map(t => \`
-      <div class="task-item \${t.completed ? 'completed' : ''}">
-        <input type="checkbox" class="task-checkbox" \${t.completed ? 'checked' : ''} onchange="APP.toggleTask(\${t.id}, this.checked)">
-        <span style="flex:1;">\${t.text}</span>
-        <button onclick="APP.deleteTask(\${t.id})" style="background:transparent;border:none;color:var(--color-danger);cursor:pointer;font-size:16px;" aria-label="Eliminar tarea">×</button>
+    container.innerHTML = activeTasks.map(t => `
+      <div class="task-item ${t.completed ? 'completed' : ''}">
+        <input type="checkbox" class="task-checkbox" ${t.completed ? 'checked' : ''} onchange="APP.toggleTask(${t.id}, this.checked)">
+        <span style="flex:1;">${t.text}</span>
+        <button onclick="APP.deleteTask(${t.id})" style="background:transparent;border:none;color:var(--color-danger);cursor:pointer;font-size:16px;" aria-label="Eliminar tarea">×</button>
       </div>
-    \`).join("");
+    `).join("");
   }
 
   async toggleTask(id, completed) {

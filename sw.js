@@ -5,17 +5,17 @@
 const CACHE_NAME = "vision-soldier-v3";
 
 const STATIC_ASSETS = [
-  "/",
-  "/index.html",
-  "/css/main.css",
-  "/js/config.js",
-  "/js/db.js",
-  "/js/personality.js",
-  "/js/voice.js",
-  "/js/ai.js",
-  "/js/router.js",
-  "/js/app.js",
-  "/manifest.json",
+  "./",
+  "./index.html",
+  "./css/main.css",
+  "./js/config.js",
+  "./js/db.js",
+  "./js/personality.js",
+  "./js/voice.js",
+  "./js/ai.js",
+  "./js/router.js",
+  "./js/app.js",
+  "./manifest.json",
 ];
 
 // Instalar: cachear recursos estáticos
@@ -60,7 +60,7 @@ self.addEventListener("fetch", (event) => {
       }
       return response;
     }).catch(() =>
-      caches.match(event.request).then(cached => cached || caches.match("/index.html"))
+      caches.match(event.request).then(cached => cached || caches.match("./index.html"))
     )
   );
 });
