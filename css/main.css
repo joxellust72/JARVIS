@@ -357,28 +357,28 @@ body::after {
 
 .orb-glow {
   position:absolute; inset:-20px; border-radius:50%;
-  background: radial-gradient(circle, rgba(0,168,255,0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--orb-shadow, rgba(0,168,255,0.12)) 0%, transparent 70%);
   animation: orbBreath 4s ease-in-out infinite;
 }
 
 .orb-pulse {
   position:absolute; inset:0; border-radius:50%;
-  border:2px solid rgba(0,168,255,0.4);
+  border:2px solid var(--border-color);
   animation: pulseRing 4s ease-out infinite;
 }
 .orb-pulse::after {
   content:''; position:absolute; inset:-8px; border-radius:50%;
-  border:1px solid rgba(0,168,255,0.2);
+  border:1px solid var(--border-color);
   animation: pulseRing 4s ease-out infinite 1s;
 }
 
 @keyframes orbBreath {
   0%,100% {
-    box-shadow: 0 0 0 1px rgba(0,168,255,0.3), 0 0 30px rgba(0,168,255,0.4), 0 0 80px rgba(0,168,255,0.15), inset 0 0 40px rgba(0,168,255,0.2);
+    box-shadow: 0 0 0 1px var(--border-color), 0 0 30px var(--orb-shadow), 0 0 80px var(--orb-shadow), inset 0 0 40px var(--orb-shadow);
     transform:scale(1);
   }
   50% {
-    box-shadow: 0 0 0 1px rgba(0,168,255,0.5), 0 0 50px rgba(0,168,255,0.6), 0 0 120px rgba(0,168,255,0.25), inset 0 0 60px rgba(0,168,255,0.3);
+    box-shadow: 0 0 0 1px var(--color-primary), 0 0 50px var(--glow-primary), 0 0 120px var(--orb-shadow), inset 0 0 60px var(--orb-shadow);
     transform:scale(1.03);
   }
 }
@@ -399,65 +399,70 @@ body::after {
 .orb.state-woken .orb-core {
   background: radial-gradient(
     circle at 35% 35%,
-    rgba(150,255,220, 1) 0%,
-    rgba(0,255,209, 0.8) 20%,
-    rgba(0,180,150, 0.6) 45%,
+    var(--orb-c1) 0%,
+    var(--orb-c2) 20%,
+    var(--orb-c3) 45%,
     rgba(0,60,50, 0.9)   70%,
-    rgba(5,10,20, 1)     100%
+    var(--bg-primary)    100%
   );
   box-shadow:
-    0 0 0 2px rgba(0,255,209,0.6),
-    0 0 40px rgba(0,255,209,0.7),
-    0 0 100px rgba(0,255,209,0.3),
-    inset 0 0 50px rgba(0,255,209,0.3);
+    0 0 0 2px var(--color-accent),
+    var(--glow-accent),
+    var(--glow-hot),
+    inset 0 0 50px var(--orb-shadow);
   animation: orbWoken 1s ease-in-out infinite;
+  filter: brightness(1.2);
 }
-.orb.state-woken .orb-pulse { border-color: rgba(0,255,209,0.6); animation-duration:1.5s; }
-.orb.state-woken .ring-1 { border-color:rgba(0,255,209,0.4); animation-duration:4s; }
-.orb.state-woken .ring-2 { border-color:rgba(0,255,209,0.25); animation-duration:6s; }
+.orb.state-woken .orb-pulse { border-color: var(--color-accent); animation-duration:1.5s; }
+.orb.state-woken .ring-1 { border-color:var(--color-accent); animation-duration:4s; }
+.orb.state-woken .ring-2 { border-color:var(--color-primary); animation-duration:6s; }
 
 @keyframes orbWoken {
-  0%,100% { transform:scale(1); box-shadow: 0 0 0 2px rgba(0,255,209,0.6), 0 0 40px rgba(0,255,209,0.7), 0 0 100px rgba(0,255,209,0.3), inset 0 0 50px rgba(0,255,209,0.3); }
-  50%     { transform:scale(1.05); box-shadow: 0 0 0 3px rgba(0,255,209,0.8), 0 0 60px rgba(0,255,209,0.9), 0 0 140px rgba(0,255,209,0.4), inset 0 0 70px rgba(0,255,209,0.4); }
+  0%,100% { transform:scale(1); filter:brightness(1.2); }
+  50%     { transform:scale(1.05); filter:brightness(1.5) saturate(1.3); }
 }
 
-/* PENSANDO */
+/* PENSANDO — pulsa con el color primario de la paleta */
 .orb.state-thinking .orb-core {
   background: radial-gradient(
     circle at 35% 35%,
-    rgba(180,130,255,0.9) 0%,
-    rgba(130,80,255,0.7)  20%,
-    rgba(80,40,180,0.5)   45%,
-    rgba(20,10,60,0.9)    70%,
-    rgba(5,10,20,1)       100%
+    var(--orb-c1) 0%,
+    var(--orb-c2) 20%,
+    var(--orb-c3) 45%,
+    rgba(20,10,60,0.9) 70%,
+    var(--bg-primary)  100%
   );
+  box-shadow:
+    0 0 0 2px var(--color-primary),
+    var(--glow-primary),
+    inset 0 0 40px var(--orb-shadow);
   animation: orbThink 0.8s ease-in-out infinite;
 }
 @keyframes orbThink {
-  0%,100%{ transform:scale(1); }
-  50%    { transform:scale(1.06); filter:brightness(1.3); }
+  0%,100%{ transform:scale(1); filter:brightness(1); }
+  50%    { transform:scale(1.06); filter:brightness(1.4) saturate(1.2); }
 }
 
-/* HABLANDO */
+/* HABLANDO — usa color gold invariante (es un estado especial) */
 .orb.state-speaking .orb-core {
   background: radial-gradient(
     circle at 35% 35%,
-    rgba(255,210,80,0.95) 0%,
-    rgba(255,168,0,0.75)  20%,
-    rgba(200,100,0,0.55)  45%,
-    rgba(60,20,0,0.9)     70%,
-    rgba(5,10,20,1)       100%
+    rgba(255,230,120,0.95) 0%,
+    var(--color-gold, rgba(255,184,0,0.75)) 20%,
+    rgba(200,100,0,0.55)   45%,
+    rgba(60,20,0,0.9)      70%,
+    var(--bg-primary)      100%
   );
   animation: orbSpeak 0.4s ease-in-out infinite alternate;
   box-shadow:
-    0 0 0 2px rgba(255,168,0,0.6),
-    0 0 40px rgba(255,168,0,0.6),
-    0 0 100px rgba(255,168,0,0.25),
-    inset 0 0 50px rgba(255,168,0,0.3);
+    0 0 0 2px var(--color-gold),
+    0 0 40px rgba(255,184,0,0.6),
+    0 0 100px rgba(255,184,0,0.25),
+    inset 0 0 50px rgba(255,184,0,0.3);
 }
 @keyframes orbSpeak {
   from{ transform:scale(1); }
-  to  { transform:scale(1.08); }
+  to  { transform:scale(1.08); filter:brightness(1.2); }
 }
 
 /* ── Ondas del orbe (hablar) ── */
@@ -470,7 +475,7 @@ body::after {
 .orb.state-speaking .orb-waves { opacity:1; }
 .orb-waves span {
   display:block; width:3px; border-radius:3px;
-  background:rgba(255,220,100,0.7);
+  background: var(--color-gold, rgba(255,220,100,0.7));
   animation:waveBar 0.6s ease-in-out infinite alternate;
 }
 .orb-waves span:nth-child(1) { height:12px; animation-delay:0s; }
