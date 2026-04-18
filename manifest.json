@@ -2,7 +2,7 @@
   "name": "VISION SOLDIER",
   "short_name": "VISION",
   "description": "Tu asistente de inteligencia artificial personal, basado en J.A.R.V.I.S.",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#050A14",
   "theme_color": "#050A14",
