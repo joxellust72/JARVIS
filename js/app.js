@@ -18,6 +18,9 @@ class VisionApp {
     this.setOrbState("listening");
     this.setWakeStatus("listening");
 
+    // Cargar paleta guardada
+    await this.loadSavedPalette();
+
     // Saludo inicial
     const greeting = PERSONALITY.getRandomGreeting();
     this.appendMessage("vision", greeting);
@@ -285,19 +288,17 @@ class VisionApp {
   // ── Tareas Diarias ──────────────────────────────────────────────
 
   async renderTasks() {
-    const tasksBar = document.getElementById("top-tasks-bar");
     const container = document.getElementById("active-tasks-list");
-    if (!tasksBar || !container) return;
+    if (!container) return;
 
     const tasks = await DB.getAllTasks();
     const activeTasks = tasks.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
 
     if (activeTasks.length === 0) {
-      tasksBar.style.display = "none";
+      container.innerHTML = `<div style="font-size:11px;color:var(--color-text-dim);padding:4px 0;font-family:var(--font-hud);letter-spacing:1px;">Sin tareas — usa el + para agregar</div>`;
       return;
     }
 
-    tasksBar.style.display = "block";
     container.innerHTML = activeTasks.map(t => `
       <div class="task-item ${t.completed ? 'completed' : ''}">
         <input type="checkbox" class="task-checkbox" ${t.completed ? 'checked' : ''} onchange="APP.toggleTask(${t.id}, this.checked)">
@@ -431,6 +432,30 @@ class VisionApp {
     t.textContent = msg;
     t.classList.add("show");
     setTimeout(() => t.classList.remove("show"), 3500);
+  }
+
+  // ── Paleta de Colores ───────────────────────────────────
+
+  async loadSavedPalette() {
+    const saved = await DB.getProfile("colorPalette");
+    if (saved) {
+      document.documentElement.setAttribute("data-palette", saved);
+      this._updateSwatches(saved);
+    }
+  }
+
+  setPalette(paletteName) {
+    document.documentElement.setAttribute("data-palette", paletteName);
+    DB.setProfile("colorPalette", paletteName);
+    this._updateSwatches(paletteName);
+    const names = { jarvis:"Jarvis Blue", phantom:"Phantom Red", matrix:"Emerald Matrix", void:"Void Purple", solar:"Solar Gold" };
+    this.showToast(`Tema cambiado: ${names[paletteName] || paletteName}`);
+  }
+
+  _updateSwatches(paletteName) {
+    document.querySelectorAll(".palette-swatch").forEach(sw => {
+      sw.classList.toggle("active", sw.dataset.palette === paletteName);
+    });
   }
 
   // ── Bind UI Events ────────────────────────────────────────────

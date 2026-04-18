@@ -4,7 +4,13 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap');
 
-:root {
+/* ═══════════════════════════════════════════
+   PALETAS DE COLOR — se cambia con JS
+═══════════════════════════════════════════ */
+
+/* Jarvis Blue (default) */
+:root,
+[data-palette="jarvis"] {
   --bg-primary:      #050A14;
   --bg-secondary:    #080F1F;
   --bg-card:         rgba(0, 168, 255, 0.04);
@@ -20,6 +26,95 @@
   --glow-primary:    0 0 24px rgba(0, 168, 255, 0.35);
   --glow-accent:     0 0 24px rgba(0, 255, 209, 0.35);
   --glow-hot:        0 0 40px rgba(0, 168, 255, 0.6);
+  --orb-c1: rgba(100,200,255,0.9); --orb-c2: rgba(0,168,255,0.7); --orb-c3: rgba(0,100,200,0.5);
+  --orb-shadow: rgba(0,168,255,0.4);
+}
+
+/* Phantom Red */
+[data-palette="phantom"] {
+  --bg-primary:      #120508;
+  --bg-secondary:    #1C0810;
+  --bg-card:         rgba(255, 40, 80, 0.04);
+  --bg-card-hover:   rgba(255, 40, 80, 0.08);
+  --color-primary:   #FF2850;
+  --color-accent:    #FF8C00;
+  --color-gold:      #FFD700;
+  --color-danger:    #FF2850;
+  --color-muted:     #5A2A3A;
+  --color-text:      #F0C8D0;
+  --color-text-dim:  #8A4A5A;
+  --border-color:    rgba(255, 40, 80, 0.18);
+  --glow-primary:    0 0 24px rgba(255, 40, 80, 0.45);
+  --glow-accent:     0 0 24px rgba(255, 140, 0, 0.4);
+  --glow-hot:        0 0 40px rgba(255, 40, 80, 0.7);
+  --orb-c1: rgba(255,100,120,0.9); --orb-c2: rgba(255,40,80,0.7); --orb-c3: rgba(180,20,50,0.5);
+  --orb-shadow: rgba(255,40,80,0.5);
+}
+
+/* Emerald Matrix */
+[data-palette="matrix"] {
+  --bg-primary:      #030D08;
+  --bg-secondary:    #051508;
+  --bg-card:         rgba(0, 255, 100, 0.04);
+  --bg-card-hover:   rgba(0, 255, 100, 0.08);
+  --color-primary:   #00FF64;
+  --color-accent:    #AAFF44;
+  --color-gold:      #FFD700;
+  --color-danger:    #FF3860;
+  --color-muted:     #1A4A2A;
+  --color-text:      #C0F0D0;
+  --color-text-dim:  #3A6A4A;
+  --border-color:    rgba(0, 255, 100, 0.18);
+  --glow-primary:    0 0 24px rgba(0, 255, 100, 0.4);
+  --glow-accent:     0 0 24px rgba(170, 255, 68, 0.35);
+  --glow-hot:        0 0 40px rgba(0, 255, 100, 0.65);
+  --orb-c1: rgba(100,255,160,0.9); --orb-c2: rgba(0,255,100,0.7); --orb-c3: rgba(0,160,60,0.5);
+  --orb-shadow: rgba(0,255,100,0.45);
+}
+
+/* Void Purple */
+[data-palette="void"] {
+  --bg-primary:      #08050F;
+  --bg-secondary:    #100818;
+  --bg-card:         rgba(160, 80, 255, 0.04);
+  --bg-card-hover:   rgba(160, 80, 255, 0.08);
+  --color-primary:   #A050FF;
+  --color-accent:    #FF50C8;
+  --color-gold:      #FFB800;
+  --color-danger:    #FF3860;
+  --color-muted:     #3A2060;
+  --color-text:      #E0C8FF;
+  --color-text-dim:  #6A4A8A;
+  --border-color:    rgba(160, 80, 255, 0.18);
+  --glow-primary:    0 0 24px rgba(160, 80, 255, 0.45);
+  --glow-accent:     0 0 24px rgba(255, 80, 200, 0.4);
+  --glow-hot:        0 0 40px rgba(160, 80, 255, 0.7);
+  --orb-c1: rgba(200,140,255,0.9); --orb-c2: rgba(160,80,255,0.7); --orb-c3: rgba(80,20,180,0.5);
+  --orb-shadow: rgba(160,80,255,0.5);
+}
+
+/* Solar Gold */
+[data-palette="solar"] {
+  --bg-primary:      #0F0A02;
+  --bg-secondary:    #180E03;
+  --bg-card:         rgba(255, 180, 0, 0.04);
+  --bg-card-hover:   rgba(255, 180, 0, 0.08);
+  --color-primary:   #FFB800;
+  --color-accent:    #FF6A00;
+  --color-gold:      #FFE066;
+  --color-danger:    #FF3860;
+  --color-muted:     #5A3A00;
+  --color-text:      #F0E0C0;
+  --color-text-dim:  #8A6A30;
+  --border-color:    rgba(255, 180, 0, 0.18);
+  --glow-primary:    0 0 24px rgba(255, 180, 0, 0.45);
+  --glow-accent:     0 0 24px rgba(255, 106, 0, 0.4);
+  --glow-hot:        0 0 40px rgba(255, 180, 0, 0.7);
+  --orb-c1: rgba(255,230,120,0.9); --orb-c2: rgba(255,180,0,0.7); --orb-c3: rgba(200,100,0,0.5);
+  --orb-shadow: rgba(255,180,0,0.5);
+}
+
+:root {
   --font-main:       'Exo 2', sans-serif;
   --font-hud:        'Rajdhani', sans-serif;
   --radius:          14px;
@@ -246,15 +341,15 @@ body::after {
   position:absolute; inset:0; border-radius:50%;
   background: radial-gradient(
     circle at 35% 35%,
-    rgba(100,200,255, 0.9) 0%,
-    rgba(0,168,255, 0.7)  20%,
-    rgba(0,100,200, 0.5)  45%,
-    rgba(0,30,80,  0.9)   70%,
-    rgba(5,10,20,  1)     100%
+    var(--orb-c1, rgba(100,200,255,0.9)) 0%,
+    var(--orb-c2, rgba(0,168,255,0.7))  20%,
+    var(--orb-c3, rgba(0,100,200,0.5))  45%,
+    rgba(0,30,80, 0.9)   70%,
+    var(--bg-primary, rgba(5,10,20,1))  100%
   );
   box-shadow:
     0 0 0 1px rgba(0,168,255,0.3),
-    0 0 30px rgba(0,168,255,0.4),
+    0 0 30px var(--orb-shadow, rgba(0,168,255,0.4)),
     0 0 80px rgba(0,168,255,0.15),
     inset 0 0 40px rgba(0,168,255,0.2);
   animation: orbBreath 4s ease-in-out infinite;
@@ -497,11 +592,12 @@ body::after {
 ════════════════════════════════════════════ */
 .chat-drawer {
   position:absolute;
+  /* Se posiciona por encima del main-screen pero DEBAJO del nav */
   bottom:0; left:0; right:0;
   background:rgba(5,10,20,0.97);
   border-top:1px solid var(--border-color);
   border-radius:var(--radius) var(--radius) 0 0;
-  z-index:20;
+  z-index:12; /* menor que nav (z-index:15) */
   transform: translateY(calc(100% - 42px));
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   max-height:var(--drawer-height);
@@ -710,9 +806,9 @@ body::after {
 .top-tasks-bar {
   width: 100%;
   padding: 0 16px;
-  margin-top: 10px;
   position: relative;
   z-index: 10;
+  flex-shrink: 0;
 }
 .tasks-header {
   display: flex;
@@ -728,17 +824,19 @@ body::after {
 .tasks-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  max-height: 80px;
+  gap: 5px;
+  max-height: 90px;
   overflow-y: auto;
 }
+.tasks-list::-webkit-scrollbar { width: 2px; }
+.tasks-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
 .task-item {
   display: flex;
   align-items: center;
   gap: 8px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  padding: 6px 10px;
+  padding: 5px 10px;
   border-radius: var(--radius-sm);
   font-size: 12px;
   color: var(--color-text);
@@ -750,39 +848,75 @@ body::after {
 }
 .task-checkbox {
   appearance: none;
-  width: 14px;
-  height: 14px;
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
   border: 1px solid var(--color-primary);
   border-radius: 3px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
 }
-.task-checkbox:checked {
-  background: var(--color-primary);
-}
+.task-checkbox:checked { background: var(--color-primary); }
 .task-checkbox:checked::after {
   content: "✔";
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
   color: var(--bg-primary);
-  font-size: 10px;
+  font-size: 9px;
 }
 .add-task-btn {
   background: transparent;
   color: var(--color-accent);
   border: 1px solid var(--color-accent);
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 20px; height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
+  line-height: 1;
+  transition: var(--transition);
 }
-.add-task-btn:hover {
-  background: rgba(0,255,209,0.1);
+.add-task-btn:hover { background: rgba(0,255,209,0.1); box-shadow: var(--glow-accent); }
+
+/* ── PALETTE PICKER ── */
+.palette-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-top: 8px;
 }
+.palette-swatch {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: var(--transition);
+  position: relative;
+  box-shadow: 0 0 8px rgba(0,0,0,0.4);
+}
+.palette-swatch:hover { transform: scale(1.15); }
+.palette-swatch.active {
+  border-color: white;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.3), 0 0 16px rgba(255,255,255,0.2);
+  transform: scale(1.1);
+}
+.palette-swatch::after {
+  content: attr(data-name);
+  position: absolute;
+  bottom: -20px;
+  left: 50%; transform: translateX(-50%);
+  font-family: var(--font-hud);
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: var(--color-text-dim);
+  white-space: nowrap;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: var(--transition);
+}
+.palette-swatch:hover::after, .palette-swatch.active::after { opacity: 1; }
 
 /* ── PASSWORD MODAL SPECIFIC ── */
 .pwd-mic-btn.listening {

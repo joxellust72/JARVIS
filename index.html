@@ -38,7 +38,7 @@
     <main id="main-screen">
 
       <!-- Barra de tareas diarias -->
-      <div class="top-tasks-bar" id="top-tasks-bar" style="display:none;">
+      <div class="top-tasks-bar" id="top-tasks-bar">
         <div class="tasks-header">
           <span>TAREAS ACTIVAS</span>
           <button id="new-task-main-btn" class="add-task-btn" aria-label="Nueva tarea">+</button>
@@ -178,6 +178,27 @@
         <div class="profile-card">
           <div class="profile-card-title">Estadísticas</div>
           <div id="profile-stats" style="font-size:13px;color:var(--color-text-dim);display:flex;flex-direction:column;gap:8px;">Cargando...</div>
+        </div>
+        <div class="profile-card">
+          <div class="profile-card-title">✨ Paleta de Colores</div>
+          <div style="font-size:12px;color:var(--color-text-dim);margin-bottom:12px;">Elige el tema visual del orbe y la interfaz</div>
+          <div class="palette-grid" id="palette-grid">
+            <div class="palette-swatch active" data-palette="jarvis" data-name="Jarvis"
+              style="background: radial-gradient(circle at 40% 40%, #00E5FF, #0040A0);"
+              onclick="APP.setPalette('jarvis')" title="Jarvis Blue"></div>
+            <div class="palette-swatch" data-palette="phantom" data-name="Phantom"
+              style="background: radial-gradient(circle at 40% 40%, #FF6080, #800020);"
+              onclick="APP.setPalette('phantom')" title="Phantom Red"></div>
+            <div class="palette-swatch" data-palette="matrix" data-name="Matrix"
+              style="background: radial-gradient(circle at 40% 40%, #60FF90, #005020);"
+              onclick="APP.setPalette('matrix')" title="Emerald Matrix"></div>
+            <div class="palette-swatch" data-palette="void" data-name="Void"
+              style="background: radial-gradient(circle at 40% 40%, #C080FF, #300060);"
+              onclick="APP.setPalette('void')" title="Void Purple"></div>
+            <div class="palette-swatch" data-palette="solar" data-name="Solar"
+              style="background: radial-gradient(circle at 40% 40%, #FFD060, #802000);"
+              onclick="APP.setPalette('solar')" title="Solar Gold"></div>
+          </div>
         </div>
         <div class="profile-card">
           <div class="profile-card-title">Cómo activar a VISION</div>
