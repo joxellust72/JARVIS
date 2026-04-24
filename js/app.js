@@ -36,6 +36,11 @@ class VisionApp {
 
     // Renderizar tareas iniciales
     await this.renderTasks();
+
+    // Notificación de inicio flotante
+    setTimeout(() => {
+      this.addFloatingNotification("SISTEMA ONLINE", "Todos los sistemas operativos. Esperando sus órdenes, señor.", "info", 8000);
+    }, 1500);
   }
 
   // ── Estados del Orbe ─────────────────────────────────────────
@@ -434,6 +439,49 @@ class VisionApp {
     setTimeout(() => t.classList.remove("show"), 3500);
   }
 
+  // ── Floating Notifications ──────────────────────────────────
+
+  addFloatingNotification(title, message, type = 'info', duration = 5000) {
+    const container = document.getElementById("floating-notifications-container");
+    if (!container) return;
+
+    const notif = document.createElement("div");
+    notif.className = `floating-notification ${type}`;
+
+    let html = '';
+    if (title) {
+      html += `<span class="floating-notification-title">${title}</span>`;
+    }
+    html += `<span>${message}</span>`;
+    html += `<button class="floating-notification-close" aria-label="Cerrar">&times;</button>`;
+    
+    notif.innerHTML = html;
+
+    // Remove function
+    const removeNotif = () => {
+      if (notif.classList.contains("hide")) return;
+      notif.classList.remove("show");
+      notif.classList.add("hide");
+      setTimeout(() => notif.remove(), 400);
+    };
+
+    // Close on click
+    notif.addEventListener("click", removeNotif);
+
+    container.appendChild(notif);
+
+    // Trigger animation
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        notif.classList.add("show");
+      });
+    });
+
+    // Auto remove
+    if (duration > 0) {
+      setTimeout(removeNotif, duration);
+    }
+  }
   // ── Paleta de Colores ───────────────────────────────────
 
   async loadSavedPalette() {
