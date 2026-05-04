@@ -91,7 +91,7 @@ class BubbleOverlayService : Service() {
                     setColor(0x20000000)
                 }
             }
-            addView(orbOuter, FrameLayout.LayoutParams(80.dpToPx(), 80.dpToPx()).apply {
+            addView(orbOuter, FrameLayout.LayoutParams(60.dpToPx(), 60.dpToPx()).apply {
                 gravity = Gravity.CENTER
             })
 
@@ -100,11 +100,11 @@ class BubbleOverlayService : Service() {
                     shape = android.graphics.drawable.GradientDrawable.OVAL
                     colors = intArrayOf(0xFF00E5FF.toInt(), 0xFF0040A0.toInt())
                     gradientType = android.graphics.drawable.GradientDrawable.RADIAL_GRADIENT
-                    gradientRadius = 60f
+                    gradientRadius = 45f
                 }
                 alpha = 0.85f
             }
-            addView(orbCore, FrameLayout.LayoutParams(56.dpToPx(), 56.dpToPx()).apply {
+            addView(orbCore, FrameLayout.LayoutParams(42.dpToPx(), 42.dpToPx()).apply {
                 gravity = Gravity.CENTER
             })
 
@@ -124,8 +124,8 @@ class BubbleOverlayService : Service() {
         }
 
         val params = WindowManager.LayoutParams(
-            100.dpToPx(),
-            100.dpToPx(),
+            76.dpToPx(),
+            76.dpToPx(),
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                     WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
@@ -238,6 +238,8 @@ class BubbleOverlayService : Service() {
 
     // ── Arrastrar burbuja ──────────────────────────────────────
 
+    private var lastClickTime: Long = 0
+
     private fun handleTouch(view: View, event: MotionEvent, params: WindowManager.LayoutParams) {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
@@ -263,7 +265,16 @@ class BubbleOverlayService : Service() {
                 }
             }
             MotionEvent.ACTION_UP -> {
-                if (!isDragging) view.performClick()
+                if (!isDragging) {
+                    val clickTime = System.currentTimeMillis()
+                    if (clickTime - lastClickTime < 300) {
+                        // Doble toque -> ocultar burbuja
+                        hide()
+                    } else {
+                        view.performClick()
+                    }
+                    lastClickTime = clickTime
+                }
                 isDragging = false
             }
         }

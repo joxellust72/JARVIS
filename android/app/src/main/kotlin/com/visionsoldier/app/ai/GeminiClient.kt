@@ -13,7 +13,21 @@ import java.util.concurrent.TimeUnit
 
 data class ChatMessage(val role: String, val content: String)
 
-class GeminiClient(private var apiKey: String) {
+class GeminiClient(private var apiKeysRaw: String) {
+
+    private var apiKeys: List<String> = extractKeys(apiKeysRaw)
+    private var currentKeyIndex = 0
+
+    private fun extractKeys(raw: String): List<String> {
+        val keys = raw.split(",").map { it.trim() }.filter { it.isNotBlank() }
+        return if (keys.isEmpty()) listOf("AIzaSyC4Ks0506P_zSPuvLJUA8D1KMM6wrICn20") else keys
+    }
+
+    private fun getCurrentKey(): String = if (apiKeys.isNotEmpty()) apiKeys[currentKeyIndex % apiKeys.size] else ""
+
+    private fun rotateKey() {
+        if (apiKeys.isNotEmpty()) currentKeyIndex = (currentKeyIndex + 1) % apiKeys.size
+    }
 
     private val model = "gemini-2.0-flash"
     private val baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent"
@@ -45,7 +59,10 @@ class GeminiClient(private var apiKey: String) {
 
     /** Actualiza la clave API en caliente (cuando el usuario la cambia en Perfil) */
     fun updateApiKey(newKey: String) {
-        if (newKey.isNotBlank()) apiKey = newKey
+        if (newKey.isNotBlank()) {
+            apiKeys = extractKeys(newKey)
+            currentKeyIndex = 0
+        }
     }
 
     suspend fun ask(
@@ -84,43 +101,57 @@ class GeminiClient(private var apiKey: String) {
                 }
             })
 
-        try {
-            val response = httpClient.newCall(
-                Request.Builder()
-                    .url("$baseUrl?key=$apiKey")
-                    .post(payload.toString().toRequestBody("application/json".toMediaType()))
-                    .build()
-            ).execute()
+        var lastError: Exception? = null
+        for (i in apiKeys.indices) {
+            val key = getCurrentKey()
+            try {
+                val response = httpClient.newCall(
+                    Request.Builder()
+                        .url("$baseUrl?key=$key")
+                        .post(payload.toString().toRequestBody("application/json".toMediaType()))
+                        .build()
+                ).execute()
 
-            if (!response.isSuccessful) {
-                val status = response.code
-                val errorBody = runCatching { response.body?.string() ?: "" }.getOrDefault("")
-                throw Exception(
-                    when (status) {
-                        401, 403 -> "GEMINI_KEY_INVALID"
-                        429      -> "GEMINI_QUOTA"
-                        500, 503 -> "GEMINI_SERVER"
-                        400      -> "GEMINI_BAD_REQUEST: $errorBody"
-                        else     -> "GEMINI_HTTP_$status: $errorBody"
+                if (!response.isSuccessful) {
+                    val status = response.code
+                    val errorBody = runCatching { response.body?.string() ?: "" }.getOrDefault("")
+                    if (status == 429) {
+                        rotateKey()
+                        lastError = Exception("GEMINI_QUOTA")
+                        continue
                     }
-                )
+                    throw Exception(
+                        when (status) {
+                            401, 403 -> "GEMINI_KEY_INVALID"
+                            500, 503 -> "GEMINI_SERVER"
+                            400      -> "GEMINI_BAD_REQUEST: $errorBody"
+                            else     -> "GEMINI_HTTP_$status: $errorBody"
+                        }
+                    )
+                }
+
+                val body = response.body?.string() ?: throw Exception("Respuesta vacía del servidor")
+                return@withContext JSONObject(body)
+                    .getJSONArray("candidates")
+                    .getJSONObject(0)
+                    .getJSONObject("content")
+                    .getJSONArray("parts")
+                    .getJSONObject(0)
+                    .getString("text")
+                    .trim()
+
+            } catch (e: UnknownHostException) {
+                throw Exception("GEMINI_NETWORK")
+            } catch (e: Exception) {
+                if (e.message?.startsWith("GEMINI_QUOTA") == true) {
+                    rotateKey()
+                    lastError = e
+                    continue
+                }
+                throw e
             }
-
-            val body = response.body?.string() ?: throw Exception("Respuesta vacía del servidor")
-            JSONObject(body)
-                .getJSONArray("candidates")
-                .getJSONObject(0)
-                .getJSONObject("content")
-                .getJSONArray("parts")
-                .getJSONObject(0)
-                .getString("text")
-                .trim()
-
-        } catch (e: UnknownHostException) {
-            throw Exception("GEMINI_NETWORK")
-        } catch (e: Exception) {
-            throw e
         }
+        throw lastError ?: Exception("No available API keys")
     }
 
     /** Traduce una excepción de Gemini a mensaje amigable en español estilo Jarvis */
@@ -156,31 +187,45 @@ class GeminiClient(private var apiKey: String) {
             else           -> "VISION"
         }
 
-        return@withContext try {
-            val payload = JSONObject()
-                .put("contents", JSONArray().put(
-                    JSONObject().put("role", "user")
-                        .put("parts", JSONArray().put(JSONObject().put("text", prompt)))
-                ))
-                .put("generationConfig", JSONObject()
-                    .put("maxOutputTokens", 180).put("temperature", 0.85))
+        var lastErrorTitle = title
+        var lastErrorText = ""
+        for (i in apiKeys.indices) {
+            val key = getCurrentKey()
+            try {
+                val payload = JSONObject()
+                    .put("contents", JSONArray().put(
+                        JSONObject().put("role", "user")
+                            .put("parts", JSONArray().put(JSONObject().put("text", prompt)))
+                    ))
+                    .put("generationConfig", JSONObject()
+                        .put("maxOutputTokens", 180).put("temperature", 0.85))
 
-            val response = httpClient.newCall(
-                Request.Builder()
-                    .url("$baseUrl?key=$apiKey")
-                    .post(payload.toString().toRequestBody("application/json".toMediaType()))
-                    .build()
-            ).execute()
+                val response = httpClient.newCall(
+                    Request.Builder()
+                        .url("$baseUrl?key=$key")
+                        .post(payload.toString().toRequestBody("application/json".toMediaType()))
+                        .build()
+                ).execute()
 
-            val body = response.body?.string() ?: ""
-            val text = JSONObject(body)
-                .getJSONArray("candidates").getJSONObject(0)
-                .getJSONObject("content").getJSONArray("parts")
-                .getJSONObject(0).getString("text").trim()
+                if (!response.isSuccessful) {
+                    if (response.code == 429) {
+                        rotateKey()
+                        continue
+                    }
+                    throw Exception("HTTP ${response.code}")
+                }
 
-            Pair(title, text)
-        } catch (e: Exception) {
-            Pair(title, "")
+                val body = response.body?.string() ?: ""
+                val text = JSONObject(body)
+                    .getJSONArray("candidates").getJSONObject(0)
+                    .getJSONObject("content").getJSONArray("parts")
+                    .getJSONObject(0).getString("text").trim()
+
+                return@withContext Pair(title, text)
+            } catch (e: Exception) {
+                lastErrorText = ""
+            }
         }
+        return@withContext Pair(lastErrorTitle, lastErrorText)
     }
 }

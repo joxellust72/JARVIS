@@ -164,7 +164,7 @@ fun ProfileScreen(
                 SectionLabel("SISTEMA", palette)
                 OutlinedTextField(
                     value = apiKey, onValueChange = { apiKey = it },
-                    label = { Text("Gemini API Key", color = palette.textDim) },
+                    label = { Text("Gemini API Keys (separadas por coma)", color = palette.textDim) },
                     visualTransformation = PasswordVisualTransformation(),
                     colors = themedFieldColors(palette),
                     modifier = Modifier.fillMaxWidth(),

@@ -17,6 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Locale
+import android.media.AudioManager
 
 /**
  * Motor de voz unificado: reconocimiento (SpeechRecognizer) + síntesis (Native TTS o ElevenLabs).
@@ -139,6 +140,9 @@ class SpeechEngine(
     private fun startRecognizer() {
         if (isListening || isSpeaking) return
         try {
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0)
+
             recognizer?.destroy()
             recognizer = SpeechRecognizer.createSpeechRecognizer(context)
             recognizer?.setRecognitionListener(object : RecognitionListener {
@@ -185,8 +189,18 @@ class SpeechEngine(
                 putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
             }
             recognizer?.startListening(intent)
+
+            mainHandler.postDelayed({
+                try {
+                    audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0)
+                } catch (e: Exception) {}
+            }, 300)
         } catch (e: Exception) {
             Log.e(TAG, "Error iniciando reconocedor: ${e.message}")
+            try {
+                val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0)
+            } catch (ex: Exception) {}
             if (shouldRestart) mainHandler.postDelayed({ startRecognizer() }, 2000)
         }
     }
