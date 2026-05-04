@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VISION SOLDIER</string>
+    <string name="notification_service_title">VISION SOLDIER — Activo</string>
+    <string name="notification_service_text">Escuchando… di "Jarvis" para activar</string>
+    <string name="accessibility_description">VISION SOLDIER necesita este permiso para poder controlar otras aplicaciones por ti: escribir mensajes en WhatsApp, tocar botones, navegar entre apps y ejecutar órdenes por voz.</string>
+</resources>
+

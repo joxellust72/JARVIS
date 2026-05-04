@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.VisionSoldier" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#FF050A14</item>
+        <item name="android:navigationBarColor">#FF050A14</item>
+        <item name="android:windowBackground">#FF050A14</item>
+    </style>
+</resources>

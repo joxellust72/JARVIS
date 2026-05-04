@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#050A14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="VISION SOLDIER" />
+  <meta name="description" content="Tu asistente de inteligencia artificial personal." />
+  <title>VISION SOLDIER</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- ── HEADER ── -->
+    <header id="header">
+      <div class="header-logo">
+        <div class="logo-arc" aria-hidden="true"></div>
+        <div class="logo-text">
+          <span class="logo-title">VISION</span>
+          <span class="logo-sub">Soldier Protocol · Online</span>
+        </div>
+      </div>
+      <div class="header-controls">
+        <div class="wake-status" id="wake-status">
+          <span class="wake-dot" id="wake-dot"></span>
+          <span class="wake-label" id="wake-label">ESCUCHANDO</span>
+        </div>
+        <button class="icon-btn" id="mute-btn" title="Silenciar voz" aria-label="Silenciar voz">🔊</button>
+        <button class="icon-btn" id="minimize-btn" title="Minimizar a burbuja"
+          aria-label="Minimizar a burbuja">⊙</button>
+      </div>
+    </header>
+
+    <!-- ── PANTALLA PRINCIPAL ── -->
+    <main id="main-screen">
+
+      <!-- Barra de tareas diarias -->
+      <div class="top-tasks-bar" id="top-tasks-bar">
+        <div class="tasks-header">
+          <span>TAREAS ACTIVAS</span>
+          <button id="new-task-main-btn" class="add-task-btn" aria-label="Nueva tarea">+</button>
+        </div>
+        <div id="active-tasks-list" class="tasks-list"></div>
+      </div>
+
+      <!-- Partículas de fondo -->
+      <div class="particles" aria-hidden="true">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+      </div>
+
+      <!-- Orbe central futurista -->
+      <div class="orb-container" id="orb-container">
+        <!-- Anillos orbitales -->
+        <div class="orb-ring ring-1" aria-hidden="true"></div>
+        <div class="orb-ring ring-2" aria-hidden="true"></div>
+        <div class="orb-ring ring-3" aria-hidden="true"></div>
+
+        <!-- Cuerpo del orbe -->
+        <div class="orb" id="orb" aria-live="polite" aria-label="Estado de VISION">
+          <div class="orb-core"></div>
+          <div class="orb-glow"></div>
+          <div class="orb-pulse"></div>
+
+          <!-- Ondas de audio (visibles al hablar) -->
+          <div class="orb-waves" id="orb-waves" aria-hidden="true">
+            <span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+            <span></span><span></span>
+          </div>
+        </div>
+
+      </div><!-- /.orb-container -->
+
+      <!-- Estado / mensaje dinámico (fuera del contenedor para no solaparse con los anillos) -->
+      <div class="orb-status" id="orb-status">Di "Jarvis" para comenzar</div>
+      <div class="orb-transcript" id="orb-transcript"></div>
+
+      <!-- Zona de entrada de texto -->
+      <div class="input-zone" id="input-zone">
+        <div class="input-row">
+          <div class="mic-orb-wrapper">
+            <button class="mic-orb-btn" id="mic-orb-btn" aria-label="Micrófono siempre activo">
+              <span class="mic-icon">🎙️</span>
+              <div class="mic-ring" aria-hidden="true"></div>
+            </button>
+          </div>
+          <div class="text-input-wrapper">
+            <textarea id="chat-input" placeholder="O escríbele aquí..." rows="1" aria-label="Mensaje para VISION"
+              autocomplete="off"></textarea>
+          </div>
+          <button class="send-icon-btn" id="send-btn" aria-label="Enviar mensaje">➤</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ── CHAT DRAWER (oculto, sube con flecha) ── -->
+    <div class="chat-drawer" id="chat-drawer" aria-label="Historial de conversación">
+      <!-- Handle / flecha para abrir/cerrar -->
+      <div class="drawer-handle" id="drawer-handle" role="button" aria-label="Mostrar historial del chat" tabindex="0">
+        <div class="handle-bar"></div>
+        <div class="handle-arrow" id="handle-arrow">▲</div>
+        <span class="handle-label">HISTORIAL</span>
+      </div>
+
+      <!-- Mensajes -->
+      <div class="drawer-messages" id="chat-messages" role="log" aria-live="polite">
+      </div>
+    </div>
+
+    <!-- ── NAVEGACIÓN ── -->
+    <nav id="nav" aria-label="Navegación principal">
+      <button class="nav-btn active" data-view="main" aria-label="Principal">
+        <span class="nav-icon">◎</span>
+        <span>VISION</span>
+      </button>
+      <button class="nav-btn" data-view="tasks" aria-label="Tareas">
+        <span class="nav-icon">☑</span>
+        <span>TAREAS</span>
+      </button>
+      <button class="nav-btn" data-view="diary" aria-label="Diario">
+        <span class="nav-icon">📔</span>
+        <span>DIARIO</span>
+      </button>
+      <button class="nav-btn" data-view="profile" aria-label="Perfil">
+        <span class="nav-icon">👤</span>
+        <span>PERFIL</span>
+      </button>
+    </nav>
+
+    <!-- ── OVERLAY: Diario ── -->
+    <div class="overlay-view" id="view-diary" role="region" aria-label="Diario personal">
+      <div class="overlay-header">
+        <button class="back-btn" id="back-from-diary" aria-label="Volver">←</button>
+        <span class="view-title">Diario</span>
+        <button class="btn-add" id="add-diary-btn" aria-label="Nueva entrada">+</button>
+      </div>
+      <!-- Calendar navigation -->
+      <div class="diary-cal-nav">
+        <button class="cal-nav-btn" id="diary-prev-month" aria-label="Mes anterior">&#8249;</button>
+        <span class="cal-month-label" id="diary-month-label">Abril 2026</span>
+        <button class="cal-nav-btn" id="diary-next-month" aria-label="Mes siguiente">&#8250;</button>
+      </div>
+      <div class="diary-cal-grid" id="diary-cal-grid" role="grid" aria-label="Calendario"></div>
+      <div class="diary-cal-date-label" id="diary-cal-date-label"></div>
+      <div id="diary-list" role="list" class="diary-scroll"></div>
+    </div>
+
+    <!-- ── OVERLAY: Tareas ── -->
+    <div class="overlay-view" id="view-tasks" role="region" aria-label="Tareas">
+      <div class="overlay-header">
+        <button class="back-btn" id="back-from-tasks" aria-label="Volver">←</button>
+        <span class="view-title">Tareas</span>
+        <button class="btn-add" id="add-task-view-btn" aria-label="Nueva tarea">+</button>
+      </div>
+      <div class="tasks-filter-row">
+        <button class="task-filter-pill active" data-filter="all">TODAS</button>
+        <button class="task-filter-pill" data-filter="pending">PENDIENTES</button>
+        <button class="task-filter-pill" data-filter="done">COMPLETADAS</button>
+      </div>
+      <div class="tasks-full-list" id="tasks-full-list" role="list"></div>
+    </div>
+
+    <!-- ── OVERLAY: Perfil ── -->
+    <div class="overlay-view" id="view-profile" role="region" aria-label="Perfil">
+      <div class="overlay-header">
+        <button class="back-btn" id="back-from-profile" aria-label="Volver">←</button>
+        <span class="view-title">Mi Perfil</span>
+      </div>
+      <div class="profile-container">
+        <div class="profile-card">
+          <div class="profile-card-title">Datos del usuario</div>
+          <div class="profile-field">
+            <div class="field-label">Nombre / Apodo</div>
+            <input class="hud-input" id="profile-name" type="text" placeholder="ej. Jarvis, señor..." />
+          </div>
+          <div class="profile-field">
+            <div class="field-label">Profesión</div>
+            <input class="hud-input" id="profile-profession" type="text" />
+          </div>
+          <div class="profile-field">
+            <div class="field-label">Intereses (separados por coma)</div>
+            <input class="hud-input" id="profile-interests" type="text" />
+          </div>
+          <div class="profile-field">
+            <div class="field-label">Rasgos personales</div>
+            <input class="hud-input" id="profile-traits" type="text" />
+          </div>
+          <div class="profile-field">
+            <div class="field-label">Contraseña del Diario (Opcional)</div>
+            <input class="hud-input" id="profile-diary-password" type="password" placeholder="Ej. Protocolo 12" />
+          </div>
+          <div class="profile-field">
+            <div class="field-label">🔑 Clave API Gemini</div>
+            <input class="hud-input" id="profile-geminiApiKey" type="password"
+              placeholder="AIzaSy... (Google AI Studio)" />
+            <div class="field-hint">Si la IA no responde, obtén una clave gratis en aistudio.google.com</div>
+          </div>
+          <button class="btn-primary" id="save-profile-btn" style="width:100%;margin-top:10px">Guardar</button>
+        </div>
+        <div class="profile-card">
+          <div class="profile-card-title">Estadísticas</div>
+          <div id="profile-stats"
+            style="font-size:13px;color:var(--color-text-dim);display:flex;flex-direction:column;gap:8px;">Cargando...
+          </div>
+        </div>
+        <div class="profile-card">
+          <div class="profile-card-title"> Paleta de Colores</div>
+          <div style="font-size:12px;color:var(--color-text-dim);margin-bottom:12px;">Elige el tema visual del orbe y la
+            interfaz</div>
+          <div class="palette-grid" id="palette-grid">
+            <div class="palette-swatch active" data-palette="jarvis" data-name="Jarvis"
+              style="background: radial-gradient(circle at 40% 40%, #00E5FF, #0040A0);"
+              onclick="APP.setPalette('jarvis')" title="Jarvis Blue"></div>
+            <div class="palette-swatch" data-palette="phantom" data-name="Phantom"
+              style="background: radial-gradient(circle at 40% 40%, #FF6080, #800020);"
+              onclick="APP.setPalette('phantom')" title="Phantom Red"></div>
+            <div class="palette-swatch" data-palette="matrix" data-name="Matrix"
+              style="background: radial-gradient(circle at 40% 40%, #60FF90, #005020);"
+              onclick="APP.setPalette('matrix')" title="Emerald Matrix"></div>
+            <div class="palette-swatch" data-palette="void" data-name="Void"
+              style="background: radial-gradient(circle at 40% 40%, #C080FF, #300060);" onclick="APP.setPalette('void')"
+              title="Void Purple"></div>
+            <div class="palette-swatch" data-palette="solar" data-name="Solar"
+              style="background: radial-gradient(circle at 40% 40%, #FFD060, #802000);"
+              onclick="APP.setPalette('solar')" title="Solar Gold"></div>
+          </div>
+        </div>
+        <div class="profile-card">
+          <div class="profile-card-title">Cómo activar a VISION</div>
+          <div
+            style="font-size:13px;color:var(--color-text-dim);line-height:1.8;display:flex;flex-direction:column;gap:6px;">
+            <span>🎙️ Di <strong style="color:var(--color-primary)">"Jarvis"</strong> seguido de tu pregunta</span>
+            <span>📔 Di <strong style="color:var(--color-accent)">"Jarvis, guarda esto:"</strong> para el diario</span>
+            <span>⌨️ O escribe directamente en el campo de texto</span>
+            <span>▲ Sube el historial tocando la flecha inferior</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /#app -->
+
+  <!-- ── MODAL: Nueva entrada del diario ── -->
+  <div id="diary-modal" role="dialog" aria-modal="true" aria-label="Nueva entrada">
+    <div class="modal-box notebook-modal">
+      <div class="modal-title-row">
+        <div class="modal-title">📄 Nueva Entrada</div>
+        <div class="modal-date" id="diary-modal-date"></div>
+      </div>
+      <div>
+        <div class="field-label">¿Qué quieres que VISION recuerde?</div>
+        <textarea class="hud-textarea" id="diary-modal-content" placeholder="Escribe aquí..." rows="5"></textarea>
+      </div>
+      <div style="display:flex;gap:12px;">
+        <div style="flex:1">
+          <div class="field-label">Categoría</div>
+          <select class="hud-select" id="diary-modal-category">
+            <option value="personal">Personal</option>
+            <option value="trabajo">Trabajo</option>
+            <option value="salud">Salud</option>
+            <option value="meta">Meta</option>
+            <option value="otros">Otros</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <div class="field-label">Importancia</div>
+          <select class="hud-select" id="diary-modal-importance">
+            <option value="1">1 — Baja</option>
+            <option value="2">2 — Normal</option>
+            <option value="3" selected>3 — Media</option>
+            <option value="4">4 — Alta</option>
+            <option value="5">5 — Crítica</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="diary-modal-cancel">Cancelar</button>
+        <button class="btn-primary" id="diary-modal-save">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: Contraseña del Diario ── -->
+  <div id="password-modal" role="dialog" aria-modal="true" aria-label="Desbloquear Diario">
+    <div class="modal-box password-box">
+      <div class="modal-title" style="text-align: center; color: var(--color-danger);">ACCESO RESTRINGIDO</div>
+      <div style="text-align:center; margin-bottom:10px; font-size:12px; color:var(--color-text-dim);">
+        <p>El Archivo del Diario está bloqueado.</p>
+        <p>Escribe la contraseña o díctala haciendo click en el micrófono.</p>
+      </div>
+      <div class="pwd-input-group" style="display:flex; gap:10px; align-items:center;">
+        <input class="hud-input pwd-input" id="diary-password-input" type="password" placeholder="Contraseña..."
+          style="flex:1;" />
+        <button class="pwd-mic-btn" id="pwd-mic-btn" aria-label="Dictar contraseña"
+          style="width:40px;height:40px;border-radius:50%;border:1px solid var(--color-danger);background:rgba(255,56,96,0.1);color:var(--color-danger);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;">🎙️</button>
+      </div>
+      <div class="modal-actions" style="justify-content: center; margin-top: 10px;">
+        <button class="btn-secondary" id="pwd-cancel-btn">Cancelar</button>
+        <button class="btn-primary" id="pwd-unlock-btn"
+          style="border-color: var(--color-danger); color: var(--color-danger);">Desbloquear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BURBUJA FLOTANTE VISION ── -->
+  <div id="vision-bubble" class="vision-bubble" role="complementary" aria-label="VISION Soldier activo">
+    <div class="bubble-speech" id="bubble-speech" role="status" aria-live="polite">
+      <span class="bubble-speech-title" id="bubble-speech-title">VISION</span>
+      <span class="bubble-speech-text" id="bubble-speech-text"></span>
+      <button class="bubble-speech-close" id="bubble-speech-close" aria-label="Cerrar mensaje">×</button>
+    </div>
+    <div class="bubble-orb-wrap" id="bubble-orb-click" role="button" tabindex="0"
+      aria-label="VISION Soldier — pulsa para ver recordatorio">
+      <div class="bubble-orb-core"></div>
+      <div class="bubble-orb-ring"></div>
+      <div class="bubble-orb-pulse"></div>
+      <div class="bubble-status-dot state-listening" id="bubble-status-dot"></div>
+    </div>
+  </div>
+
+  <!-- ── FLOATING NOTIFICATIONS ── -->
+  <div id="floating-notifications-container" class="floating-notifications-container" aria-live="polite"></div>
+
+  <!-- ── TOAST ── -->
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/personality.js"></script>
+  <script src="js/voice.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/router.js"></script>
+  <script src="js/bubble.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => { });
+      });
+    }
+  </script>
+</body>
+
+</html>
